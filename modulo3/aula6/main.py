@@ -103,9 +103,9 @@ def main():
             }
 
             success, message = user_service.update_user_profile(
-                CURRENT_USER_SESSION["id"],
-                CURRENT_USER_SESSION["perfil"],
-                CURRENT_USER_SESSION["id"],
+                CURRENT_USER_SESSION["id"], # type: ignore
+                CURRENT_USER_SESSION["perfil"], # type: ignore
+                CURRENT_USER_SESSION["id"], # type: ignore
                 new_data,
             )
             print(message)
@@ -122,7 +122,7 @@ def main():
             try:
                 user_id = int(input("Digite o ID do usuário a ser deletado: "))
                 success, message = user_service.delete_user(
-                    CURRENT_USER_SESSION["perfil"], user_id
+                    CURRENT_USER_SESSION["perfil"], user_id # pyright: ignore[reportArgumentType]
                 )
                 print(message)
             except ValueError:
@@ -135,7 +135,7 @@ def main():
             if users:
                 for user in users:
                     print(
-                        f"ID: {user['id']} | Perfil: {user['perfil_acesso']} | Nome: {user['nome_completo']} | E-mail: {user['email']}"
+                        f"ID: {user['id']} | Perfil: {user['perfil_acesso']} | Nome: {user['nome_completo']} | E-mail: {user['email']}" # type: ignore
                     )
             else:
                 print("Nenhum usuário cadastrado.")

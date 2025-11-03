@@ -13,7 +13,7 @@ class UserModel:
     def _create_table(self):
         """Cria a tabela de usuários simplificada (apenas login, nome e perfil)."""
         self.db_conn.connect()
-        self.db_conn.cursor.execute(
+        self.db_conn.cursor.execute( # type: ignore
             """
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -49,7 +49,7 @@ class UserModel:
         )
 
         try:
-            self.db_conn.cursor.execute(
+            self.db_conn.cursor.execute( # type: ignore
                 f"""
                 INSERT INTO usuarios ({field_names})
                 VALUES ({placeholders});
@@ -70,16 +70,16 @@ class UserModel:
     def find_user_by_id(self, user_id: int):
         """Busca um usuário pelo ID."""
         self.db_conn.connect()
-        self.db_conn.cursor.execute("SELECT * FROM usuarios WHERE id = ?;", (user_id,))
-        user = self.db_conn.cursor.fetchone()
+        self.db_conn.cursor.execute("SELECT * FROM usuarios WHERE id = ?;", (user_id,)) # type: ignore
+        user = self.db_conn.cursor.fetchone() # type: ignore
         self.db_conn.close()
         return user
 
     def find_user_by_email(self, email: str):
         """Busca um usuário pelo e-mail (usado no login)."""
         self.db_conn.connect()
-        self.db_conn.cursor.execute("SELECT * FROM usuarios WHERE email = ?;", (email,))
-        user = self.db_conn.cursor.fetchone()
+        self.db_conn.cursor.execute("SELECT * FROM usuarios WHERE email = ?;", (email,)) # type: ignore
+        user = self.db_conn.cursor.fetchone() # type: ignore
         self.db_conn.close()
         return user
 
@@ -120,8 +120,8 @@ class UserModel:
         query = f"UPDATE usuarios SET {query_updates_str} WHERE id = ?;"
 
         try:
-            self.db_conn.cursor.execute(query, params)
-            rows_affected = self.db_conn.cursor.rowcount
+            self.db_conn.cursor.execute(query, params) # type: ignore
+            rows_affected = self.db_conn.cursor.rowcount # type: ignore
             self.db_conn.close()
             if rows_affected > 0:
                 return True, "Usuário atualizado com sucesso!"
@@ -136,8 +136,8 @@ class UserModel:
     def delete_user_by_id(self, user_id: int) -> tuple[bool, str]:
         """Deleta um usuário pelo ID."""
         self.db_conn.connect()
-        self.db_conn.cursor.execute("DELETE FROM usuarios WHERE id = ?;", (user_id,))
-        rows_affected = self.db_conn.cursor.rowcount
+        self.db_conn.cursor.execute("DELETE FROM usuarios WHERE id = ?;", (user_id,)) # type: ignore
+        rows_affected = self.db_conn.cursor.rowcount # type: ignore
         self.db_conn.close()
         if rows_affected > 0:
             return True, "Usuário deletado com sucesso!"
@@ -146,7 +146,7 @@ class UserModel:
     def get_all_users(self):
         """Retorna todos os usuários."""
         self.db_conn.connect()
-        self.db_conn.cursor.execute("SELECT * FROM usuarios;")
-        users = self.db_conn.cursor.fetchall()
+        self.db_conn.cursor.execute("SELECT * FROM usuarios;") # type: ignore
+        users = self.db_conn.cursor.fetchall() # type: ignore
         self.db_conn.close()
         return users
