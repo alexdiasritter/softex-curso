@@ -1,8 +1,21 @@
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render
 
-def home(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("<h1>Olá mundo!</h1>") 
 
-def house(request: HttpRequest) -> HttpResponse:
-    return HttpResponse("<h1>This is our house</h1>")
+def home(request: HttpRequest) -> HttpResponse:
+    
+    """
+    # passando uma variável através de context q é apenas um dict
+    context: dict = {
+        "name": "alex",
+        "idade": 25
+    }
+    return render(request,'home.html', context=context)
+    """
+        
+    my_context: dict = {
+        "name": "Alex",
+        "tecnologias": ['Python', 'Java', 'C', 'Javascript', 'HTML']
+        }
+    
+    return render(request,'home.html', context=my_context)
