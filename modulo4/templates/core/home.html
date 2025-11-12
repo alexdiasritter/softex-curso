@@ -1,24 +1,39 @@
-{% extends 'base.html' %} 
+{% extends 'base.html' %}
 
-{% block title %} Página Inicial - Meu Site {%endblock %} 
+{% block title %}
+    Página Inicial - Meu Site
+{% endblock %}
 
 {% block content %}
+    <h1>Olá, {{ nome_usuario }}!</h1>
+    <hr />
 
-<h1>Minha Lista de Tarefas (do Banco de Dados):</h1>
+    <h3>Nova Tarefa:</h3>
+    <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">Adicionar Tarefa</button>
+    </form>
 
-<ul>
-{% for tarefa in tarefas %}
-    <li>
-    {{ tarefa.titulo }}
-    {% if tarefa.concluida %}
-        (✓ Concluída)
-    {% else %}
-        (☐ Pendente)
-    {% endif %} <br />
-    <small>Criada em: {{ tarefa.criada_em }}</small>
-    </li>
-    {% empty %}
-    <li>Você ainda não tem tarefas cadastradas.</li>
-    {% endfor %}
-</ul>
+    <hr />
+
+    <h2>Minha Lista de Tarefas...</h2>
+    <h1>Minha Lista de Tarefas (do Banco de Dados):</h1>
+
+    <ul>
+        {% for tarefa in tarefas %}
+            <li>
+                {{ tarefa.titulo }}
+                {% if tarefa.concluida %}
+                    (✓ Concluída)
+                {% else %}
+                    (Pendente)
+                {% endif %}
+                <br />
+                <small>Criada em: {{ tarefa.criada_em }}</small>
+            </li>
+        {% empty %}
+            <li>Você ainda não tem tarefas cadastradas.</li>
+        {% endfor %}
+    </ul>
 {% endblock %}
