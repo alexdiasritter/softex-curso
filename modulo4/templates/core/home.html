@@ -17,7 +17,6 @@
 
     <hr />
 
-    <h2>Minha Lista de Tarefas...</h2>
     <h1>Minha Lista de Tarefas (do Banco de Dados):</h1>
 
     <ul>
@@ -31,6 +30,16 @@
                 {% endif %}
                 <br />
                 <small>Criada em: {{ tarefa.criada_em }}</small>
+                <form action="{% url 'deletar_tarefa' tarefa.pk %}" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit">Deletar</button>
+                </form>
+                {% if not tarefa.concluida %}
+                    <form action="{% url 'concluir_tarefa' tarefa.pk %}" method="POST" style="display: inline;">
+                        {% csrf_token %}
+                        <button type="submit">Marcar como Concluída</button>
+                    </form>
+                {% endif %}
             </li>
         {% empty %}
             <li>Você ainda não tem tarefas cadastradas.</li>
