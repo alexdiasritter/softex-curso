@@ -4,6 +4,7 @@ from django.db import models
 class Tarefa(models.Model):
     
     titulo = models.CharField(max_length=50)
+    descricao = models.CharField(max_length=255, default='')
     concluida = models.BooleanField(default=False)
     criada_em = models.DateTimeField(auto_now_add=True)
     
