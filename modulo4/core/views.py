@@ -1,30 +1,50 @@
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
+from django.shortcuts import redirect, render, get_object_or_404  
+from .forms import TarefaForm
 from .models import Tarefa
+from django.contrib.auth.decorators import login_required 
 
-
+@login_required
 def home(request):
-    tarefas = Tarefa.objects.all()
+    tarefas = Tarefa.objects.all().order_by('-criada_em')
+    if request.method == 'POST':
+        form = TarefaForm(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+    else:
+        form = TarefaForm()
     context = {
-        'nome_usuario': 'alex',
-        'tecnologias': ['Python, Java, Django, Models'],
-        'tarefas': tarefas
+        'nome_usuario': 'Júnior',
+        'tecnologias': ['Python', 'Django', 'Models', 'Forms'],
+        'tarefas': tarefas,
+        'form': form,
     }
     return render(request, 'home.html', context)
 
+@login_required
+def concluir_tarefa(request, pk):
+    tarefa = get_object_or_404(Tarefa, pk=pk)
+    if request.method == 'POST':
+        tarefa.concluida = not tarefa.concluida
+        tarefa.save()
+    return redirect('home')
 
+@login_required
+def deletar_tarefa(request, pk):
+    tarefa = get_object_or_404(Tarefa, pk=pk)
+    if request.method == 'POST':
+        tarefa.delete()
+    return redirect('home')
 
-
-
-
-
-'''
-def home(request: HttpRequest) -> HttpResponse:
-        
-    my_context: dict = {
-        "name": "Alex",
-        "tecnologias": ['Python', 'Java', 'C', 'Javascript', 'HTML']
-        }
-    
-    return render(request,'home.html', context=my_context)
-'''
+def register(request):
+    form = UserCreationForm(request.POST)
+    if form.is_valid():
+        user = form.save() 
+        login(request, user)
+        return redirect('home') 
+    else:
+        form = UserCreationForm() 
+        context = {'form': form}
+    return render(request, 'register.html', context)
