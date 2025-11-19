@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 
 class Tarefa(models.Model):
     
-    user = models.ForeignKey(User, on_delete=models.CASCADE, default=None)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=50)
     descricao = models.CharField(max_length=255, default='')
     concluida = models.BooleanField(default=False)

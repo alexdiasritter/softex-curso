@@ -7,16 +7,19 @@ from django.contrib.auth.decorators import login_required
 
 @login_required
 def home(request):
-    tarefas = Tarefa.objects.all().order_by('-criada_em')
+    tarefas = Tarefa.objects.filter(user=request.user).order_by('-criada_em')
     if request.method == 'POST':
         form = TarefaForm(request.POST)
         if form.is_valid():
-            form.save()
+            tarefa = form.save(commit=False)  
+            tarefa.user = request.user 
+            tarefa.save()               
             return redirect('home')
     else:
         form = TarefaForm()
+        username = request.user.username
     context = {
-        'nome_usuario': 'Júnior',
+        'nome_usuario': username,
         'tecnologias': ['Python', 'Django', 'Models', 'Forms'],
         'tarefas': tarefas,
         'form': form,
