@@ -5,21 +5,24 @@ from .models import Tarefa
 from .serializers import TarefaSerializer
 
 class ListaTarefasAPIView(APIView): 
-    """
-    View para listar todas as tarefas (GET).
-    Endpoints:
-    GET /api/tarefas/ - Lista todas as tarefas
-    """
-    def get(self, request, format=None):
-        """
-        Retorna lista de todas as tarefas do banco.
-        Returns:
-        Response: JSON com lista de tarefas e status 200
-        """
-        # 1. BUSCAR: ORM do Django busca todos os registros
-        tarefas = Tarefa.objects.all()
-        # 2. SERIALIZAR: Converter objetos Python → JSON
-        # many=True: indica que é uma lista de objetos
+    
+    def get(self, request):
+        user_id = request.query_params.get('user_id')
+        if user_id:
+            tarefas = Tarefa.objects.filter(user_id=user_id)
+        else:
+            tarefas = Tarefa.objects.all()
         serializer = TarefaSerializer(tarefas, many=True)
-        # 3. RESPONDER: Retornar JSON com status HTTP
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
+                    
+class ContagemTarefasAPIView(APIView):
+    
+    def get(self, request):
+        total = Tarefa.objects.count()
+        concluidas = Tarefa.objects.filter(concluida=True).count()
+        pendentes = total - concluidas
+        return Response({
+            'total': total,
+            'concluidas': concluidas,
+            'pendentes': pendentes
+        })

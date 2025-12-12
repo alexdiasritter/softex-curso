@@ -14,6 +14,12 @@ class Tarefa(models.Model):
         verbose_name='Título'
     )
     
+    descricao = models.CharField(
+        max_length=100,
+        default=None,
+        verbose_name='Descrição'
+    )
+    
     concluida = models.BooleanField(
         default=False,
         verbose_name='Concluída'

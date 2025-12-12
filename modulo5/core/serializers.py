@@ -10,7 +10,7 @@ class TarefaSerializer(serializers.ModelSerializer):
     """
     class Meta:
         model = Tarefa
-        fields = ['id', 'user', 'titulo', 'concluida', 'criada_em']
+        fields = ['id', 'user', 'descricao','titulo', 'concluida', 'criada_em']
         
         # Campos gerados automaticamente (não aceitos na entrada)
         read_only_fields = ['id', 'criada_em']
