@@ -1,88 +1,125 @@
-from django.shortcuts import get_object_or_404
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from django.db import IntegrityError
 from .models import Tarefa
 from .serializers import TarefaSerializer
+from django.db import IntegrityError
+import logging
+from django.shortcuts import get_object_or_404 
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.tokens import RefreshToken
+
+
+logger = logging.getLogger(__name__)
+
 
 class ListaTarefasAPIView(APIView):
-    def get(self, request):
+
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request, format=None):
         tarefas = Tarefa.objects.all()
         serializer = TarefaSerializer(tarefas, many=True)
-        return Response(serializer.data)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+    
+    def post(self, request, format=None):
+
+        try:
+            serializer = TarefaSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                serializer.save(user=self.request.user)
+                logger.info(f"[INFO]: Tarefa criada: {serializer.data['id']}") # type: ignore
+                return Response(
+                    serializer.data,
+                    status=status.HTTP_201_CREATED
+                )
+            logger.warning(f"[WARNING]: Validação falhou: {serializer.errors}")
+            return Response(
+                serializer.errors,
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except IntegrityError as e:
+            # Erro de constraint no banco (ex: UNIQUE)
+            return Response(
+                {'error': '[ERROR]: Violação de integridade no banco de dados.'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            # Erro inesperado
+            logger.error(f"Erro ao criar tarefa: {str(e)}")
+            return Response(
+                {'error': 'Erro interno do servidor.'},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
+
+class DetalheTarefaAPIView(APIView): 
+
+    def get_object(self, pk): 
+        return get_object_or_404(Tarefa, pk=pk)
+    
+    def get(self, request, pk, format=None): 
+        tarefa = self.get_object(pk) 
+        serializer = TarefaSerializer(tarefa) 
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, pk, format=None): 
+        
+        tarefa = self.get_object(pk) 
+        serializer = TarefaSerializer(tarefa, data=request.data) 
+    
+        if serializer.is_valid(): 
+            serializer.save() 
+            
+            return Response(serializer.data, status=status.HTTP_200_OK) 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
+    
+    def patch(self, request, pk, format=None): 
+
+        tarefa = self.get_object(pk) 
+        serializer = TarefaSerializer( 
+            tarefa, 
+            data=request.data, 
+            partial=True
+        ) 
+ 
+        if serializer.is_valid(): 
+            serializer.save() 
+ 
+            return Response(serializer.data, status=status.HTTP_200_OK) 
+ 
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+    def delete(self, request, pk, format=None): 
+
+        tarefa = self.get_object(pk) 
+        tarefa.delete() 
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    
+
+class MinhaView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+         return Response(f"Usuário autenticado: {request.user.username}", 
+                        status=status.HTTP_200_OK,
+                        )
+    
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
     
     def post(self, request):
-        serializer = TarefaSerializer(data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-class DetalheTarefaAPIView(APIView):
-    def get_object(self, pk):
-        return get_object_or_404(Tarefa, pk=pk)
-
-    def get(self, request, pk):
-        tarefa = self.get_object(pk)
-        serializer = TarefaSerializer(tarefa)
-        return Response(serializer.data)
-
-    def put(self, request, pk):
-        tarefa = self.get_object(pk)
-        serializer = TarefaSerializer(tarefa, data=request.data, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def patch(self, request, pk):
-        tarefa = self.get_object(pk)
-        serializer = TarefaSerializer(tarefa, data=request.data, partial=True, context={'request': request})
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def delete(self, request, pk):
-        tarefa = self.get_object(pk)
-        tarefa.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-# Exercício 2: Endpoint de Duplicação
-class DuplicarTarefaAPIView(APIView):
-    def post(self, request, pk):
-        tarefa_origem = get_object_or_404(Tarefa, pk=pk)
-        
-        # Cria cópia na memória
-        tarefa_origem.pk = None
-        tarefa_origem.titulo = f"{tarefa_origem.titulo} (Cópia)"
-        tarefa_origem.concluida = False
-        tarefa_origem.data_conclusao = None
-        tarefa_origem.save()
-        
-        serializer = TarefaSerializer(tarefa_origem)
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-# Exercício 3: PATCH em Lote
-class ConcluirTodasTarefasAPIView(APIView):
-    def patch(self, request):
-        # Atualiza todas as pendentes para concluídas
-        atualizadas = Tarefa.objects.filter(concluida=False).update(concluida=True)
-        return Response(
-            {"mensagem": f"{atualizadas} tarefas foram concluídas com sucesso."},
-            status=status.HTTP_200_OK
+        try:
+            refresh_token = request.data.get("refresh")
+            token = RefreshToken(refresh_token)
+            token.blacklist()
+            return Response(
+                {"detail": "Logout realizado com sucesso."},
+                status=status.HTTP_205_RESET_CONTENT,
+            )
+        except Exception:
+            return Response(
+            {"detail": "Token inválido."},
+            status=status.HTTP_400_BAD_REQUEST
         )
-
-class ContagemTarefasAPIView(APIView):
-    def get(self, request):
-        total = Tarefa.objects.count()
-        concluidas = Tarefa.objects.filter(concluida=True).count()
-        pendentes = total - concluidas
-        taxa = (concluidas / total) if total > 0 else 0
-        return Response({
-            'total': total,
-            'concluidas': concluidas,
-            'pendentes': pendentes,
-            'taxa_conclusao': round(taxa, 2)
-        })
